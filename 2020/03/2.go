@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 )
@@ -34,11 +35,11 @@ func main() {
 	}
 
 	slopes := []Slope{
-		Slope{Row: 1, Col: 1},
-		Slope{Row: 1, Col: 3},
-		Slope{Row: 1, Col: 5},
-		Slope{Row: 1, Col: 7},
-		Slope{Row: 2, Col: 1},
+		{Row: 1, Col: 1},
+		{Row: 1, Col: 3},
+		{Row: 1, Col: 5},
+		{Row: 1, Col: 7},
+		{Row: 2, Col: 1},
 	}
 
 	product := 1
@@ -56,5 +57,5 @@ func main() {
 		}
 		product *= numTrees
 	}
-	println(product)
+	fmt.Println(product)
 }
