@@ -45,6 +45,7 @@ func main() {
 
 		if !seatExists {
 			fmt.Println(seatId)
+			return
 		}
 	}
 }
