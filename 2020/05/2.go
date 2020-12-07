@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	seats, err := ioutil.ReadFile("05/input.txt")
+	seats, err := ioutil.ReadFile("2020/05/input.txt")
 	if err != nil {
 		panic(err)
 	}
