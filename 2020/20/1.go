@@ -10,13 +10,8 @@ import (
 )
 
 type Tile struct {
-	id         int
-	t, r, b, l string
-}
-
-type Tile2 struct {
-	id int
-	contents []string
+	id       int
+	contents [][]rune
 }
 
 func main() {
@@ -29,23 +24,11 @@ func main() {
 		matches := r.FindStringSubmatch(idLine)
 		id, _ := strconv.Atoi(matches[1])
 		tileGrid := lines[1:]
-
-		tiles = append(tiles, Tile2 {id, lines[1:]})
-
-
-
-		top := tileGrid[0]
-		right := ""
-		for i := 0; i < len(tileGrid); i++ {
-			right += string(tileGrid[i][len(tileGrid[i])-1])
+		contents := make([][]rune, len(tileGrid))
+		for i, line := range tileGrid {
+			contents[i] = []rune(line)
 		}
-		bottom := tileGrid[len(tileGrid)-1]
-		left := ""
-		for i := 0; i < len(tileGrid); i++ {
-			left += string(tileGrid[i][0])
-		}
-
-		tiles = append(tiles, Tile{id, top, right, bottom, left})
+		tiles = append(tiles, Tile{id, contents})
 	}
 
 	size := int(math.Sqrt(float64(len(tiles))))
@@ -59,7 +42,7 @@ func main() {
 
 func place(tiles []Tile, grid [][]Tile, r int, c int, size int) bool {
 	if len(tiles) == 0 {
-		fmt.Println(grid[0][0].id *grid[0][size-1].id* grid[size-1][0].id*grid[size-1][size-1].id)
+		fmt.Println(grid[0][0].id * grid[0][size-1].id * grid[size-1][0].id * grid[size-1][size-1].id)
 		return true
 	}
 
@@ -74,14 +57,14 @@ func place(tiles []Tile, grid [][]Tile, r int, c int, size int) bool {
 			// check if can place tile
 			// top
 			if r != 0 {
-				if grid[r-1][c].b != variant.t {
+				if grid[r-1][c].bottom() != variant.top() {
 					continue
 				}
 			}
 
 			// left
 			if c != 0 {
-				if grid[r][c-1].r != variant.l {
+				if grid[r][c-1].right() != variant.left() {
 					continue
 				}
 			}
@@ -93,7 +76,7 @@ func place(tiles []Tile, grid [][]Tile, r int, c int, size int) bool {
 			}
 			newGrid[r][c] = variant
 
-			newTiles := make([]Tile,len(tiles))
+			newTiles := make([]Tile, len(tiles))
 			copy(newTiles, tiles)
 			newTiles = append(newTiles[:tileIndex], newTiles[tileIndex+1:]...)
 
@@ -105,66 +88,90 @@ func place(tiles []Tile, grid [][]Tile, r int, c int, size int) bool {
 
 	return false
 }
-//
-//// original
-//abc
-//def
-//ghi
-//
-//// original horizontal
-//cba
-//fed
-//ihg
-//
-//// original vertical
-//ghi
-//def
-//abc
-//
-//// 90
-//gda
-//heb
-//ifc
-//
-//// 90 horizontal
-//adg
-//beh
-//cfi
-//
-//// 90 vertical
-//ifc
-//heb
-//gda
-//
-//// 180
-//ihg
-//fed
-//cba
-//
-//// 270
-//cfi
-//beh
-//adg
 
-
-
-
-
-func variants(tile Tile) []Tile {
-	verticalFlip := Tile{tile.id, tile.b, reverse(tile.r), tile.t, reverse(tile.l)}
-	horizontalFlip := Tile{tile.id, reverse(tile.t), tile.l, reverse(tile.b), tile.r}
-	rotate90 := Tile{tile.id, reverse(tile.l), tile.t, reverse(tile.r), tile.b}
-	vertical90Flip := Tile{tile.id, rotate90.b, reverse(rotate90.r), rotate90.t, reverse(rotate90.l)}
-	horizontal90Flip := Tile{tile.id, reverse(rotate90.t), rotate90.l, reverse(rotate90.b), rotate90.r}
-	rotate180 := Tile{tile.id, reverse(rotate90.l), rotate90.t, reverse(rotate90.r), rotate90.b}
-	rotate270 := Tile{tile.id, reverse(rotate180.l), rotate180.t, reverse(rotate180.r), rotate180.b}
-	return []Tile{tile, verticalFlip, horizontalFlip, rotate90, vertical90Flip, horizontal90Flip, rotate180, rotate270}
+func (tile Tile) top() string {
+	return string(tile.contents[0])
 }
 
-func reverse(s string) string {
-	runes := []rune(s)
+func (tile Tile) bottom() string {
+	return string(tile.contents[len(tile.contents)-1])
+}
+
+func (tile Tile) left() string {
+	ret := make([]rune, len(tile.contents))
+	for i, row := range tile.contents {
+		ret[i] = row[0]
+	}
+	return string(ret)
+}
+
+func (tile Tile) right() string {
+	ret := make([]rune, len(tile.contents))
+	for i, row := range tile.contents {
+		ret[i] = row[len(row)-1]
+	}
+	return string(ret)
+}
+
+func variants(tile Tile) []Tile {
+	verticalFlip := Tile{tile.id, vertical(tile.contents)}
+	horizontalFlip := Tile{tile.id, horizontal(tile.contents)}
+	rotate90 := Tile{tile.id, rot90(tile.contents)}
+	verticalRotate90 := Tile{tile.id, vertical(rotate90.contents)}
+	horizontalRotate90 := Tile{tile.id, horizontal(rotate90.contents)}
+	rotate180 := Tile{tile.id, rot90(rotate90.contents)}
+	rotate270 := Tile{tile.id, rot90(rotate180.contents)}
+	return []Tile{
+		tile,
+		verticalFlip,
+		horizontalFlip,
+		rotate90,
+		verticalRotate90,
+		horizontalRotate90,
+		rotate180,
+		rotate270,
+	}
+}
+
+func rot90(contents [][]rune) [][]rune {
+	newContents := make([][]rune, len(contents))
+	for r, row := range contents {
+		newContents[r] = make([]rune, len(row))
+		copy(newContents[r], row)
+	}
+
+	for r, row := range contents {
+		for c := range row {
+			newContents[r][c] = contents[len(contents)-c-1][r]
+		}
+	}
+
+	return newContents
+}
+
+func vertical(contents [][]rune) [][]rune {
+	newContents := make([][]rune, len(contents))
+	for i := range contents {
+		newContents[i] = contents[len(contents)-1-i]
+	}
+	return newContents
+}
+
+func horizontal(contents [][]rune) [][]rune {
+	newContents := make([][]rune, len(contents))
+	for i, row := range contents {
+		newContents[i] = reverse(row)
+	}
+	return newContents
+}
+
+func reverse(r []rune) []rune {
+	runes := make([]rune, len(r))
+	copy(runes, r)
+
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
-	return string(runes)
+
+	return runes
 }
