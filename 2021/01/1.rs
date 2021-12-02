@@ -1,14 +1,12 @@
-use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
+use std::io;
 
 fn main() -> io::Result<()> {
-    let file = File::open("input.txt")?;
-    let reader = BufReader::new(file);
+    let reader = include_str!("input.txt");
 
     let mut last_depth = -1;
     let mut increases = 0;
     for line in reader.lines() {
-        let depth = line?.parse::<i32>().unwrap();
+        let depth = line.parse::<i32>().unwrap();
         if last_depth == -1 {
             last_depth = depth;
             continue;
